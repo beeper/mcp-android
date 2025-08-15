@@ -8,6 +8,7 @@ import io.modelcontextprotocol.kotlin.sdk.CallToolResult
 import io.modelcontextprotocol.kotlin.sdk.TextContent
 import kotlinx.serialization.json.jsonPrimitive
 import androidx.core.net.toUri
+import com.beeper.mcp.BEEPER_AUTHORITY
 
 private const val TAG = "GetContactsHandler"
 
@@ -38,7 +39,7 @@ fun ContentResolver.handleGetContacts(request: CallToolRequest): CallToolResult 
             "limit=$limit&offset=$offset"
         }
         
-        val queryUri = "content://com.beeper.api/contacts?$paginationParams".toUri()
+        val queryUri = "content://$BEEPER_AUTHORITY/contacts?$paginationParams".toUri()
         val contacts = mutableListOf<Map<String, Any?>>()
         
         query(queryUri, null, null, null, null)?.use { cursor ->
@@ -67,7 +68,7 @@ fun ContentResolver.handleGetContacts(request: CallToolRequest): CallToolResult 
         // 2. Get total count only if we got a full page (indicating more results may exist)
         var totalCount: Int? = null
         if (contacts.size == limit) {
-            val countUri = "content://com.beeper.api/contacts/count".let { baseUri ->
+            val countUri = "content://$BEEPER_AUTHORITY/contacts/count".let { baseUri ->
                 if (params.isNotEmpty()) "$baseUri?$params" else baseUri
             }.toUri()
             

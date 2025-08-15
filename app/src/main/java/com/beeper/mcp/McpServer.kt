@@ -1,8 +1,12 @@
 package com.beeper.mcp
 
 import android.content.Context
-import android.net.Uri
 import android.util.Log
+import androidx.core.net.toUri
+import com.beeper.mcp.tools.handleGetChats
+import com.beeper.mcp.tools.handleGetContacts
+import com.beeper.mcp.tools.handleGetMessages
+import com.beeper.mcp.tools.handleSendMessage
 import io.ktor.http.ContentType
 import io.ktor.http.HttpHeaders
 import io.ktor.http.HttpMethod
@@ -19,8 +23,6 @@ import io.ktor.server.routing.routing
 import io.ktor.server.sse.SSE
 import io.ktor.server.sse.ServerSSESession
 import io.ktor.server.sse.sse
-import io.modelcontextprotocol.kotlin.sdk.CallToolRequest
-import io.modelcontextprotocol.kotlin.sdk.CallToolResult
 import io.modelcontextprotocol.kotlin.sdk.GetPromptResult
 import io.modelcontextprotocol.kotlin.sdk.Implementation
 import io.modelcontextprotocol.kotlin.sdk.PromptArgument
@@ -38,16 +40,11 @@ import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.launch
 import kotlinx.serialization.json.buildJsonArray
 import kotlinx.serialization.json.buildJsonObject
-import kotlinx.serialization.json.jsonPrimitive
 import kotlinx.serialization.json.put
 import java.net.NetworkInterface
 import java.util.concurrent.ConcurrentHashMap
-import androidx.core.net.toUri
-import android.content.ContentValues
-import com.beeper.mcp.tools.handleGetChats
-import com.beeper.mcp.tools.handleGetContacts
-import com.beeper.mcp.tools.handleGetMessages
-import com.beeper.mcp.tools.handleSendMessage
+
+const val BEEPER_AUTHORITY = "com.beeper.api"
 
 class McpServer(private val context: Context) {
     companion object {
@@ -351,7 +348,7 @@ class McpServer(private val context: Context) {
 
     private fun getChatListResource(): String {
         return try {
-            val uri = Uri.parse("content://com.beeper.api/chats")
+            val uri = "content://$BEEPER_AUTHORITY/chats".toUri()
             val cursor = context.contentResolver.query(uri, null, null, null, null)
             
             val chats = buildJsonArray {
@@ -390,24 +387,6 @@ class McpServer(private val context: Context) {
             - Most active conversations
             - Key topics discussed
         """.trimIndent()
-    }
-    
-    private fun formatTimestamp(timestamp: Long): String {
-        val formatter = java.text.SimpleDateFormat("MMM dd, HH:mm", java.util.Locale.getDefault())
-        return formatter.format(java.util.Date(timestamp))
-    }
-    
-    private fun getTimeAgo(timestamp: Long): String {
-        val now = System.currentTimeMillis()
-        val diff = now - timestamp
-        
-        return when {
-            diff < 60_000 -> "just now"
-            diff < 3600_000 -> "${diff / 60_000}m ago"
-            diff < 86400_000 -> "${diff / 3600_000}h ago"
-            diff < 604800_000 -> "${diff / 86400_000}d ago"
-            else -> "${diff / 604800_000}w ago"
-        }
     }
     
     private fun generateSessionId(): String {

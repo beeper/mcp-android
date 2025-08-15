@@ -4,6 +4,7 @@ import android.content.ContentResolver
 import android.content.ContentValues
 import androidx.core.net.toUri
 import android.util.Log
+import com.beeper.mcp.BEEPER_AUTHORITY
 import io.modelcontextprotocol.kotlin.sdk.CallToolRequest
 import io.modelcontextprotocol.kotlin.sdk.CallToolResult
 import io.modelcontextprotocol.kotlin.sdk.TextContent
@@ -31,7 +32,7 @@ suspend fun ContentResolver.handleSendMessage(request: CallToolRequest): CallToo
         Log.i(TAG, "Parameters: roomId=$roomId, text length=${text.length}")
         Log.i(TAG, "Start time: $startTime")
         
-        val uriBuilder = "content://com.beeper.api/messages".toUri().buildUpon()
+        val uriBuilder = "content://$BEEPER_AUTHORITY/messages".toUri().buildUpon()
         uriBuilder.appendQueryParameter("roomId", roomId)
         uriBuilder.appendQueryParameter("text", text)
         
