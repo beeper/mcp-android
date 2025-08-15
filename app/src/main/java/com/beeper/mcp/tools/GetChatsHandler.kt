@@ -51,6 +51,8 @@ fun ContentResolver.handleGetChats(request: CallToolRequest): CallToolResult {
             val roomIdIdx = cursor.getColumnIndex("roomId")
             val titleIdx = cursor.getColumnIndex("title")
             val previewIdx = cursor.getColumnIndex("messagePreview")
+            val senderEntityIdIdx = cursor.getColumnIndex("senderEntityId")
+            val protocolIdx = cursor.getColumnIndex("protocol")
             val unreadIdx = cursor.getColumnIndex("unreadCount")
             val timestampIdx = cursor.getColumnIndex("timestamp")
             val oneToOneIdx = cursor.getColumnIndex("oneToOne")
@@ -61,6 +63,8 @@ fun ContentResolver.handleGetChats(request: CallToolRequest): CallToolResult {
                     "roomId" to cursor.getString(roomIdIdx),
                     "title" to cursor.getString(titleIdx),
                     "preview" to cursor.getString(previewIdx),
+                    "senderEntityId" to cursor.getString(senderEntityIdIdx),
+                    "protocol" to cursor.getString(protocolIdx),
                     "unreadCount" to cursor.getInt(unreadIdx),
                     "timestamp" to cursor.getLong(timestampIdx),
                     "isOneToOne" to (cursor.getInt(oneToOneIdx) == 1),
@@ -97,6 +101,8 @@ fun ContentResolver.handleGetChats(request: CallToolRequest): CallToolResult {
                     val roomId = chatData["roomId"] as? String ?: "unknown"
                     val title = chatData["title"] as? String ?: "Untitled"
                     val preview = chatData["preview"] as? String ?: ""
+                    val senderEntityId = chatData["senderEntityId"] as? String ?: ""
+                    val protocol = chatData["protocol"] as? String ?: ""
                     val unreadCount = chatData["unreadCount"] as? Int ?: 0
                     val timestamp = chatData["timestamp"] as? Long ?: 0L
                     val isOneToOne = chatData["isOneToOne"] as? Boolean ?: false
@@ -107,11 +113,15 @@ fun ContentResolver.handleGetChats(request: CallToolRequest): CallToolResult {
                     appendLine("  Title: $title")
                     appendLine("  Room ID: $roomId")
                     appendLine("  Type: ${if (isOneToOne) "Direct Message" else "Group Chat"}")
+                    appendLine("  Network: ${if (protocol.isNotEmpty()) protocol else "Beeper"}")
                     appendLine("  Unread: $unreadCount messages")
                     appendLine("  Muted: ${if (isMuted) "Yes" else "No"}")
                     appendLine("  Last Activity: ${formatTimestamp(timestamp)}")
                     if (preview.isNotEmpty()) {
                         appendLine("  Preview: ${preview.take(100)}${if (preview.length > 100) "..." else ""}")
+                        if (senderEntityId.isNotEmpty()) {
+                            appendLine("  Preview Sender: $senderEntityId")
+                        }
                     }
                 }
                 
