@@ -3,6 +3,7 @@ package com.beeper.mcp
 import android.content.BroadcastReceiver
 import android.content.Context
 import android.content.Intent
+import android.os.Build
 import android.util.Log
 
 class ServiceRestartReceiver : BroadcastReceiver() {
@@ -15,7 +16,12 @@ class ServiceRestartReceiver : BroadcastReceiver() {
                 val serviceIntent = Intent(context, McpService::class.java).apply {
                     action = McpService.ACTION_START_SERVICE
                 }
-                context.startService(serviceIntent)
+                
+                if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.O) {
+                    context.startForegroundService(serviceIntent)
+                } else {
+                    context.startService(serviceIntent)
+                }
             }
         }
     }
