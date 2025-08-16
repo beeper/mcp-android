@@ -18,11 +18,12 @@ fun ContentResolver.handleGetContacts(request: CallToolRequest): CallToolResult 
         val query = request.arguments.get("query")?.jsonPrimitive?.content
         val roomIds = request.arguments.get("roomIds")?.jsonPrimitive?.content
         val senderIds = request.arguments.get("senderIds")?.jsonPrimitive?.content
+        val protocol = request.arguments.get("protocol")?.jsonPrimitive?.content
         val limit = request.arguments.get("limit")?.jsonPrimitive?.content?.toIntOrNull() ?: 100
         val offset = request.arguments.get("offset")?.jsonPrimitive?.content?.toIntOrNull() ?: 0
         
         Log.i(TAG, "=== TOOL REQUEST: get_contacts ===")
-        Log.i(TAG, "Parameters: query=$query, roomIds=$roomIds, senderIds=$senderIds, limit=$limit, offset=$offset")
+        Log.i(TAG, "Parameters: query=$query, roomIds=$roomIds, senderIds=$senderIds, protocol=$protocol, limit=$limit, offset=$offset")
         Log.i(TAG, "Start time: $startTime")
         
         // Build common parameter string for both count and query
@@ -30,6 +31,7 @@ fun ContentResolver.handleGetContacts(request: CallToolRequest): CallToolResult 
             query?.let { append("query=${Uri.encode(it)}&") }
             roomIds?.let { append("roomIds=${Uri.encode(it)}&") }
             senderIds?.let { append("senderIds=${Uri.encode(it)}&") }
+            protocol?.let { append("protocol=${Uri.encode(it)}&") }
         }.trimEnd('&')
         
         // 1. Get paginated results
@@ -104,68 +106,49 @@ fun ContentResolver.handleGetContacts(request: CallToolRequest): CallToolResult 
             appendLine("=" .repeat(50))
             
             if (contacts.isNotEmpty()) {
-                // Group contacts by unique contact ID and display name
-                val contactMap = mutableMapOf<String, MutableList<String>>()
-                
-                contacts.forEach { contactData ->
+                // Simply iterate through contacts and display them
+                contacts.forEachIndexed { index, contactData ->
                     val contactId = contactData["id"] as? String ?: "unknown"
                     val displayName = contactData["displayName"] as? String ?: "Unknown"
                     val contactDisplayName = contactData["contactDisplayName"] as? String ?: ""
                     val linkedContactId = contactData["linkedContactId"] as? String ?: ""
                     val itsMe = contactData["itsMe"] as? Boolean ?: false
-                    val protocol = contactData["protocol"] as? String ?: "unknown"
+                    val protocol = contactData["protocol"] as? String ?: ""
                     val roomIds = contactData["roomIds"] as? String ?: ""
                     
-                    val key = "$contactId|$displayName|$contactDisplayName|$linkedContactId|$itsMe|$protocol"
-                    
-                    if (!contactMap.containsKey(key)) {
-                        contactMap[key] = mutableListOf()
-                    }
-                    
-                    // Split comma-separated room IDs and add them to the list
-                    if (roomIds.isNotEmpty()) {
-                        val roomList = roomIds.split(",").map { it.trim() }.filter { it.isNotEmpty() }
-                        contactMap[key]?.addAll(roomList)
-                    }
-                }
-                
-                contactMap.entries.forEachIndexed { index, (key, roomList) ->
-                    val parts = key.split("|")
-                    val contactId = parts[0]
-                    val displayName = parts[1]
-                    val contactDisplayName = parts[2]
-                    val linkedContactId = parts[3]
-                    val itsMe = parts[4].toBoolean()
-                    val protocol = parts[5]
-
                     appendLine()
-                    appendLine("Contact #${index + 1}:")
+                    appendLine("Contact #${offset + index + 1}:")
                     val nameToShow = contactDisplayName.ifEmpty { displayName }
                     appendLine("  Name: $nameToShow${if (itsMe) " (You)" else ""}")
                     appendLine("  ID: $contactId")
-                    appendLine("  Protocol: $protocol")
+                    appendLine("  Network: ${protocol.ifEmpty { "beeper" }}")
                     if (linkedContactId.isNotEmpty()) {
                         appendLine("  Linked Contact: $linkedContactId")
                     }
-                    appendLine("  Present in ${roomList.size} room${if (roomList.size != 1) "s" else ""}:")
-                    roomList.take(3).forEach { roomId ->
-                        appendLine("    - $roomId")
-                    }
-                    if (roomList.size > 3) {
-                        appendLine("    ... and ${roomList.size - 3} more rooms")
+                    
+                    // Handle room list display
+                    if (roomIds.isNotEmpty()) {
+                        val roomList = roomIds.split(",").map { it.trim() }.filter { it.isNotEmpty() }
+                        appendLine("  Present in ${roomList.size} room${if (roomList.size != 1) "s" else ""}:")
+                        roomList.take(3).forEach { roomId ->
+                            appendLine("    - $roomId")
+                        }
+                        if (roomList.size > 3) {
+                            appendLine("    ... and ${roomList.size - 3} more rooms")
+                        }
+                    } else {
+                        appendLine("  Present in 0 rooms")
                     }
                 }
                 
                 appendLine()
                 if (totalCount != null) {
-                    appendLine("Showing ${offset + 1}-${offset + contacts.size} of $totalCount total contact instances")
-                    appendLine("Unique contacts in this page: ${contactMap.size}")
+                    appendLine("Showing ${offset + 1}-${offset + contacts.size} of $totalCount total contacts")
                     if (offset + contacts.size < totalCount) {
                         appendLine("Use offset=${offset + contacts.size} to get the next page")
                     }
                 } else {
-                    appendLine("Showing ${contacts.size} contact instance${if (contacts.size != 1) "s" else ""} (page complete)")
-                    appendLine("Unique contacts in this page: ${contactMap.size}")
+                    appendLine("Showing ${contacts.size} contact${if (contacts.size != 1) "s" else ""} (page complete)")
                 }
             } else {
                 when {

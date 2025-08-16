@@ -21,11 +21,12 @@ fun ContentResolver.handleGetChats(request: CallToolRequest): CallToolResult {
         val isArchived = arguments.get("isArchived")?.jsonPrimitive?.content?.toIntOrNull()
         val isUnread = arguments.get("isUnread")?.jsonPrimitive?.content?.toIntOrNull()
         val showInAllChats = arguments.get("showInAllChats")?.jsonPrimitive?.content?.toIntOrNull()
+        val protocol = arguments.get("protocol")?.jsonPrimitive?.content
         val limit = arguments.get("limit")?.jsonPrimitive?.content?.toIntOrNull() ?: 100
         val offset = arguments.get("offset")?.jsonPrimitive?.content?.toIntOrNull() ?: 0
         
         Log.i(TAG, "=== TOOL REQUEST: get_chats ===")
-        Log.i(TAG, "Parameters: roomIds=$roomIds, isLowPriority=$isLowPriority, isArchived=$isArchived, isUnread=$isUnread, showInAllChats=$showInAllChats, limit=$limit, offset=$offset")
+        Log.i(TAG, "Parameters: roomIds=$roomIds, isLowPriority=$isLowPriority, isArchived=$isArchived, isUnread=$isUnread, showInAllChats=$showInAllChats, protocol=$protocol, limit=$limit, offset=$offset")
         Log.i(TAG, "Start time: $startTime")
         
         // Build common parameter string for both count and query
@@ -35,6 +36,7 @@ fun ContentResolver.handleGetChats(request: CallToolRequest): CallToolResult {
             isArchived?.let { append("isArchived=$it&") }
             isUnread?.let { append("isUnread=$it&") }
             showInAllChats?.let { append("showInAllChats=$it&") }
+            protocol?.let { append("protocol=${Uri.encode(it)}&") }
         }.trimEnd('&')
         
         // 1. Get paginated results
@@ -113,7 +115,7 @@ fun ContentResolver.handleGetChats(request: CallToolRequest): CallToolResult {
                     appendLine("  Title: $title")
                     appendLine("  Room ID: $roomId")
                     appendLine("  Type: ${if (isOneToOne) "Direct Message" else "Group Chat"}")
-                    appendLine("  Network: ${if (protocol.isNotEmpty()) protocol else "Beeper"}")
+                    appendLine("  Network: ${protocol.ifEmpty { "beeper" }}")
                     appendLine("  Unread: $unreadCount messages")
                     appendLine("  Muted: ${if (isMuted) "Yes" else "No"}")
                     appendLine("  Last Activity: ${formatTimestamp(timestamp)}")

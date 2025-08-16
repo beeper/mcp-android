@@ -249,7 +249,7 @@ class McpServer(private val context: Context) {
         // Add tools with full parameter schemas
         server.addTool(
             name = "get_chats",
-            description = "Retrieves chats/conversations with optional filtering. Parameters: roomIds (optional, comma-separated), isLowPriority (optional, 0/1), isArchived (optional, 0/1), isUnread (optional, 0/1), showInAllChats (optional, 0/1), limit (optional, default 100), offset (optional, default 0). Returns formatted text with complete chat information and pagination details.",
+            description = "Retrieves chats/conversations with optional filtering. Parameters: roomIds (optional, comma-separated), isLowPriority (optional, 0/1), isArchived (optional, 0/1), isUnread (optional, 0/1), showInAllChats (optional, 0/1), protocol (optional, filter by network - any messaging protocol like 'whatsapp', 'telegram', 'signal', 'beeper'/'matrix' for native chats, etc.), limit (optional, default 100), offset (optional, default 0). Returns formatted text with complete chat information and pagination details.",
         ) { request ->
             context.contentResolver.handleGetChats(request)
         }
@@ -257,7 +257,7 @@ class McpServer(private val context: Context) {
         
         server.addTool(
             name = "get_contacts",
-            description = "Retrieves contacts/senders with optional filtering. Parameters: senderIds (optional, comma-separated), roomIds (optional, comma-separated), query (optional, full-text search), limit (optional, default 100), offset (optional, default 0). Returns contact details including display names, protocols, room memberships, and pagination details.",
+            description = "Retrieves contacts/senders with optional filtering. Parameters: senderIds (optional, comma-separated), roomIds (optional, comma-separated), query (optional, full-text search), protocol (optional, filter by network - any messaging protocol like 'whatsapp', 'telegram', 'signal', 'beeper'/'matrix' for native contacts, etc.), limit (optional, default 100), offset (optional, default 0). Returns contact details including display names, protocols, room memberships, and pagination details.",
         ) { request ->
             context.contentResolver.handleGetContacts(request)
         }
