@@ -9,7 +9,7 @@ An Android MCP (Model Context Protocol) server that provides access to Beeper ch
 - Android 8.0 (API level 26) or higher
 - Android Studio or build tools for compilation
 
-## Build Instructions
+## Build and Installation
 
 ### 1. Clone the Repository
 ```bash
@@ -17,36 +17,21 @@ git clone https://github.com/your-repo/beeper-mcp.git
 cd beeper-mcp
 ```
 
-### 2. Build with Android Studio
-1. Open the project in Android Studio
-2. Sync project with Gradle files
-3. Build the project: **Build → Make Project**
-4. Generate APK: **Build → Build Bundle(s) / APK(s) → Build APK(s)**
-
-### 3. Build with Command Line
-```bash
-# Debug build
-./gradlew assembleDebug
-
-# Release build (requires signing)
-./gradlew assembleRelease
-```
-
-## Installation
-
-### Method 1: Direct APK Install
-```bash
-# Install debug APK
-adb install app/build/outputs/apk/debug/app-debug.apk
-
-# Or install release APK
-adb install app/build/outputs/apk/release/app-release.apk
-```
-
-### Method 2: Android Studio
+### 2. Connect Your Device
 1. Connect your Android device via USB
 2. Enable **Developer Options** and **USB Debugging**
-3. In Android Studio: **Run → Run 'app'**
+
+### 3. Build and Install
+
+#### Option A: Command Line
+```bash
+./gradlew installDebug
+```
+
+#### Option B: Android Studio
+1. Open the project in Android Studio
+2. Sync project with Gradle files
+3. Run the app: **Run → Run 'app'**
 
 ## Setup and Usage
 
@@ -65,11 +50,6 @@ claude mcp add --transport sse beeper-android http://[DEVICE_IP]:8081
 
 Replace `[DEVICE_IP]` with your Android device's IP address (shown in the app).
 
-### 3. Restart Claude
-```bash
-claude --restart
-```
-
 ## Available MCP Tools
 
 - **get_chats** - Retrieve chats with filtering options
@@ -84,9 +64,3 @@ claude --restart
 - **Permissions**: Beeper permissions are required for the server to function
 - **Battery**: Consider disabling battery optimization to prevent the service from being killed
 
-## Troubleshooting
-
-- **Connection Issues**: Check device IP address and network connectivity
-- **Permission Errors**: Ensure Beeper permissions are granted in the app
-- **Service Stops**: Disable battery optimization for the app
-- **Port Conflicts**: The server runs on port 8081 by default
